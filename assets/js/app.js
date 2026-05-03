@@ -1,18 +1,34 @@
+function smartEstateSiteRoot() {
+  if (typeof window.__SMARTESTATE_SITE_ROOT__ === 'string') {
+    return window.__SMARTESTATE_SITE_ROOT__;
+  }
+  const parts = window.location.pathname.split('/').filter(Boolean);
+  const idx = parts.indexOf('pages');
+  if (idx === 0) return '/';
+  if (idx > 0) return `/${parts.slice(0, idx).join('/')}/`;
+  if (!parts.length) return '/';
+  const last = parts[parts.length - 1];
+  if (last.includes('.')) parts.pop();
+  if (!parts.length) return '/';
+  return `/${parts.join('/')}/`;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-  // Authentication Check
+  const siteRoot = smartEstateSiteRoot();
+  const loginHref = `${siteRoot}pages/login.html`;
+  const profileHref = `${siteRoot}pages/profile.html`;
+
   const currentPage = window.location.pathname.split('/').pop() || 'index.html';
   const authPages = ['login.html', 'signup.html'];
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
   const user = JSON.parse(localStorage.getItem('smartEstateUser'));
 
-  // If not logged in and not on auth page, redirect
   if (!isLoggedIn && !authPages.includes(currentPage) && currentPage !== '') {
-    window.location.href = '/pages/login.html';
+    window.location.href = loginHref;
     return;
   }
-  // Also handle the root path (localhost:5000/)
   if (!isLoggedIn && currentPage === '') {
-    window.location.href = '/pages/login.html';
+    window.location.href = loginHref;
     return;
   }
 
@@ -29,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Update Navbar if logged in
   if (isLoggedIn && user && navActions && !authPages.includes(currentPage)) {
     const initial = user.name ? user.name.charAt(0).toUpperCase() : 'U';
-    navActions.innerHTML = `<a href="/pages/profile.html" class="profile-avatar" title="View Profile">${initial}</a>`;
+    navActions.innerHTML = `<a href="${profileHref}" class="profile-avatar" title="View Profile">${initial}</a>`;
   }
   // Theme Toggle Logic
   const savedTheme = localStorage.getItem('smartEstateTheme') || 'light';

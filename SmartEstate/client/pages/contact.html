@@ -3,6 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+  (function () {
+    var p = location.pathname;
+    if (p.length > 1 && !p.endsWith('/')) {
+      var segs = p.split('/').filter(Boolean);
+      var last = segs.length ? segs[segs.length - 1] : '';
+      if (last.indexOf('.') === -1) {
+        history.replaceState(null, '', p + '/' + location.search + location.hash);
+      }
+    }
+    function computeSiteRoot() {
+      var parts = location.pathname.split('/').filter(Boolean);
+      var idx = parts.indexOf('pages');
+      if (idx === 0) return '/';
+      if (idx > 0) return '/' + parts.slice(0, idx).join('/') + '/';
+      if (!parts.length) return '/';
+      var lastPart = parts[parts.length - 1];
+      if (lastPart.indexOf('.') !== -1) parts.pop();
+      if (!parts.length) return '/';
+      return '/' + parts.join('/') + '/';
+    }
+    window.__SMARTESTATE_SITE_ROOT__ = computeSiteRoot();
+  })();
+  </script>
   <title>Contact Us - Smart Real Estate</title>
   <link rel="stylesheet" href="../assets/css/style.css">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
