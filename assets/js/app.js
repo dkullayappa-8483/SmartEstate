@@ -13,6 +13,31 @@ function smartEstateSiteRoot() {
   return `/${parts.join('/')}/`;
 }
 
+function escapeHtml(str) {
+  if (str == null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+const USER_PROPERTIES_KEY = 'smartEstateSubmittedProperties';
+
+function loadUserSubmittedProperties() {
+  try {
+    const raw = localStorage.getItem(USER_PROPERTIES_KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  } catch (_) {
+    return [];
+  }
+}
+
+function saveUserSubmittedProperties(list) {
+  localStorage.setItem(USER_PROPERTIES_KEY, JSON.stringify(list));
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const siteRoot = smartEstateSiteRoot();
   const loginHref = `${siteRoot}pages/login.html`;
@@ -170,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (loader) loader.style.display = 'flex';
       if (propertiesGrid) propertiesGrid.innerHTML = '';
       
-      let properties = sampleProperties;
+      let properties = [...loadUserSubmittedProperties(), ...sampleProperties];
       
       if (filters.location) {
         properties = properties.filter(p => p.location.toLowerCase().includes(filters.location.toLowerCase()));
@@ -216,19 +241,20 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="property-image">
           <div class="property-badges">
             ${property.featured ? '<span class="badge badge-featured">Featured</span>' : ''}
+            ${property.verificationProof ? '<span class="badge" style="background:#0f766e;color:#fff;font-size:0.7rem;">Verification</span>' : ''}
             <span class="badge badge-status ${property.status === 'For Rent' ? 'rent' : ''}">${property.status}</span>
           </div>
-          <img src="${property.imageUrl ? property.imageUrl.replace('w=800', 'w=600') : ''}" alt="${property.title}" loading="lazy" decoding="async" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease;">
+          <img src="${property.imageUrl ? property.imageUrl.replace('w=800', 'w=600') : ''}" alt="${escapeHtml(property.title)}" loading="lazy" decoding="async" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease;">
           <div class="property-price">${formatCurrency(property.price)}${property.status === 'For Rent' ? '<span style="font-size:0.8rem;font-weight:normal">/mo</span>' : ''}</div>
         </div>
         <div class="property-content">
-          <div class="property-type">${property.type}</div>
-          <h3 class="property-title">${property.title}</h3>
+          <div class="property-type">${escapeHtml(property.type)}</div>
+          <h3 class="property-title">${escapeHtml(property.title)}</h3>
           <div class="property-location">
-            <i class="fa-solid fa-location-dot"></i> ${property.location}
+            <i class="fa-solid fa-location-dot"></i> ${escapeHtml(property.location)}
           </div>
           <p class="property-description" style="color: var(--text-light); font-size: 0.95rem; margin-bottom: 1.25rem; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-            ${property.description}
+            ${escapeHtml(property.description)}
           </p>
           <div class="property-features">
             <div class="feature">
@@ -241,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <i class="fa-solid fa-vector-square"></i> ${property.sqft} sqft
             </div>
           </div>
-          <button class="btn btn-outline" style="width: 100%; margin-top: 1.5rem;" onclick="openPropertyModal('${property._id}')">View Full Details</button>
+          <button class="btn btn-outline" style="width: 100%; margin-top: 1.5rem;" onclick="openPropertyModal('${String(property._id)}')">View Full Details</button>
         </div>
       </div>
     `).join('');
@@ -267,11 +293,152 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  window.smartEstateRefetchProps = () => {
+    const locEl = document.getElementById('filter-location');
+    fetchProperties({
+      location: locEl ? locEl.value : '',
+      type: filterType ? filterType.value : '',
+      status: filterStatus ? filterStatus.value : ''
+    });
+  };
+
+  const addBtn = document.getElementById('btn-add-property');
+  if (addBtn) addBtn.addEventListener('click', () => window.openAddPropertyModal(loginHref));
+
   // Initial fetch only if properties grid exists
   if (propertiesGrid) {
     fetchProperties();
   }
 });
+
+window.openAddPropertyModal = function (loginHref) {
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  if (!isLoggedIn) {
+    alert('Please sign in to add a listing.');
+    if (loginHref) window.location.href = loginHref;
+    return;
+  }
+
+  const existing = document.getElementById('add-property-modal');
+  if (existing) existing.remove();
+
+  const wrap = document.createElement('div');
+  wrap.id = 'add-property-modal';
+  wrap.style.cssText =
+    'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.82);backdrop-filter:blur(8px);z-index:2500;display:flex;align-items:center;justify-content:center;padding:1rem;overflow:auto;';
+  wrap.innerHTML = `
+    <div style="background:var(--white);border-radius:16px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;padding:1.75rem;box-shadow:0 25px 50px rgba(0,0,0,0.35);position:relative;">
+      <button type="button" id="close-add-property" aria-label="Close" style="position:absolute;top:0.75rem;right:0.75rem;border:none;background:var(--bg-color);width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:1.15rem;"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin-bottom:0.35rem;color:var(--dark-color);padding-right:2rem;"><i class="fa-solid fa-plus-circle"></i> Add property</h3>
+      <p style="color:var(--text-light);font-size:0.875rem;margin-bottom:1.25rem;">Explain why this listing is genuine so viewers can spot serious posts versus fake spam.</p>
+      <form id="form-add-property">
+        <label style="display:block;font-size:0.8rem;font-weight:600;color:var(--dark-color);margin-bottom:0.35rem;">Title</label>
+        <input required name="title" style="width:100%;padding:0.6rem;margin-bottom:0.75rem;border-radius:8px;border:1px solid var(--border-color);font-family:inherit;">
+        <label style="display:block;font-size:0.8rem;font-weight:600;color:var(--dark-color);margin-bottom:0.35rem;">Description</label>
+        <textarea required name="description" rows="3" style="width:100%;padding:0.6rem;margin-bottom:0.75rem;border-radius:8px;border:1px solid var(--border-color);font-family:inherit;"></textarea>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.65rem;margin-bottom:0.75rem;">
+          <div>
+            <label style="display:block;font-size:0.8rem;font-weight:600;color:var(--dark-color);margin-bottom:0.35rem;">Price (USD)</label>
+            <input required type="number" min="1" step="any" name="price" style="width:100%;padding:0.6rem;border-radius:8px;border:1px solid var(--border-color);font-family:inherit;">
+          </div>
+          <div>
+            <label style="display:block;font-size:0.8rem;font-weight:600;color:var(--dark-color);margin-bottom:0.35rem;">Location</label>
+            <input required name="location" placeholder="City, ST" style="width:100%;padding:0.6rem;border-radius:8px;border:1px solid var(--border-color);font-family:inherit;">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.65rem;margin-bottom:0.75rem;">
+          <div>
+            <label style="display:block;font-size:0.8rem;font-weight:600;color:var(--dark-color);margin-bottom:0.35rem;">Beds</label>
+            <input required type="number" min="0" step="any" name="bedrooms" value="2" style="width:100%;padding:0.6rem;border-radius:8px;border:1px solid var(--border-color);font-family:inherit;">
+          </div>
+          <div>
+            <label style="display:block;font-size:0.8rem;font-weight:600;color:var(--dark-color);margin-bottom:0.35rem;">Baths</label>
+            <input required type="number" min="0" step="any" name="bathrooms" value="2" style="width:100%;padding:0.6rem;border-radius:8px;border:1px solid var(--border-color);font-family:inherit;">
+          </div>
+          <div>
+            <label style="display:block;font-size:0.8rem;font-weight:600;color:var(--dark-color);margin-bottom:0.35rem;">Sq ft</label>
+            <input required type="number" min="100" step="1" name="sqft" value="1200" style="width:100%;padding:0.6rem;border-radius:8px;border:1px solid var(--border-color);font-family:inherit;">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.65rem;margin-bottom:0.75rem;">
+          <div>
+            <label style="display:block;font-size:0.8rem;font-weight:600;color:var(--dark-color);margin-bottom:0.35rem;">Type</label>
+            <select name="type" style="width:100%;padding:0.6rem;border-radius:8px;border:1px solid var(--border-color);font-family:inherit;">
+              <option>House</option><option>Apartment</option><option>Villa</option><option>Condo</option><option>Townhouse</option>
+            </select>
+          </div>
+          <div>
+            <label style="display:block;font-size:0.8rem;font-weight:600;color:var(--dark-color);margin-bottom:0.35rem;">Status</label>
+            <select name="status" style="width:100%;padding:0.6rem;border-radius:8px;border:1px solid var(--border-color);font-family:inherit;">
+              <option>For Sale</option><option>For Rent</option>
+            </select>
+          </div>
+        </div>
+        <label style="display:block;font-size:0.8rem;font-weight:600;color:var(--dark-color);margin-bottom:0.35rem;">Photo URL <span style="font-weight:400;color:var(--text-light);">(optional)</span></label>
+        <input type="url" name="imageUrl" placeholder="https://…" style="width:100%;padding:0.6rem;margin-bottom:0.75rem;border-radius:8px;border:1px solid var(--border-color);font-family:inherit;">
+        <label style="display:block;font-size:0.8rem;font-weight:600;color:#047857;margin-bottom:0.35rem;">Verification / proof <span style="color:#b45309;font-weight:700;">*</span></label>
+        <textarea required name="verificationProof" minlength="40" rows="4" placeholder="Briefly explain how this listing can be verified (registry number, gated-community ID you can share with agents, link to strata docs reference, utility bill match, registered agent name…). Helps reduce misleading posts." style="width:100%;padding:0.6rem;margin-bottom:0.5rem;border-radius:8px;border:1px solid #34d399;font-family:inherit;font-size:0.9rem;"></textarea>
+        <p style="font-size:0.75rem;color:var(--text-light);margin-bottom:0.65rem;">Min. 40 characters. Serious posters can cite real identifiers; reviewers use this spot to weed out obvious fakes.</p>
+        <label style="display:block;font-size:0.8rem;font-weight:600;color:var(--dark-color);margin-bottom:0.35rem;">Supporting file <span style="font-weight:400;color:var(--text-light);">(optional demo — file name saved only)</span></label>
+        <input type="file" name="proofFile" accept=".pdf,.jpg,.jpeg,.png" style="width:100%;margin-bottom:0.75rem;font-size:0.85rem;">
+        <label style="display:flex;align-items:flex-start;gap:0.5rem;font-size:0.85rem;color:var(--text-color);margin-bottom:1rem;cursor:pointer;">
+          <input type="checkbox" name="confirmTruth" required style="margin-top:0.2rem;">
+          <span>I confirm this listing description is truthful and that I can support the verification details above.</span>
+        </label>
+        <button type="submit" class="btn btn-primary" style="width:100%;padding:0.85rem;"><i class="fa-solid fa-check"></i> Publish listing</button>
+      </form>
+    </div>`;
+
+  document.body.appendChild(wrap);
+  wrap.addEventListener('click', e => {
+    if (e.target === wrap) wrap.remove();
+  });
+
+  wrap.querySelector('#close-add-property').addEventListener('click', () => wrap.remove());
+
+  wrap.querySelector('#form-add-property').addEventListener('submit', e => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const proof = String(fd.get('verificationProof') || '').trim();
+    if (proof.length < 40) {
+      alert('Please add more detail in Verification / proof (at least 40 characters).');
+      return;
+    }
+    const proofFileInput = e.target.elements.proofFile;
+    const attachmentName =
+      proofFileInput && proofFileInput.files && proofFileInput.files.length
+        ? proofFileInput.files[0].name
+        : '';
+
+    const defaultImg =
+      'https://images.pexels.com/photos/259588/pexels-photo-259588.jpeg?auto=compress&cs=tinysrgb&w=800';
+    const img = String(fd.get('imageUrl') || '').trim() || defaultImg;
+
+    const newProp = {
+      _id: 'u-' + Date.now(),
+      title: fd.get('title').trim(),
+      description: fd.get('description').trim(),
+      price: Number(fd.get('price')),
+      location: fd.get('location').trim(),
+      bedrooms: Number(fd.get('bedrooms')),
+      bathrooms: Number(fd.get('bathrooms')),
+      sqft: Number(fd.get('sqft')),
+      imageUrl: img,
+      type: fd.get('type'),
+      status: fd.get('status'),
+      featured: false,
+      verificationProof: proof,
+      proofAttachmentName: attachmentName || undefined
+    };
+
+    const list = loadUserSubmittedProperties();
+    list.unshift(newProp);
+    saveUserSubmittedProperties(list);
+    wrap.remove();
+    if (typeof window.smartEstateRefetchProps === 'function') window.smartEstateRefetchProps();
+    else location.reload();
+  });
+};
 
 // Property Modal Logic
 window.openPropertyModal = function(propertyId) {
@@ -315,7 +482,7 @@ window.openPropertyModal = function(propertyId) {
 
       <!-- Hero Image (Smaller height, scrolls with content) -->
       <div style="position: relative; height: 250px; background: var(--bg-color);">
-        <img src="${property.imageUrl ? property.imageUrl.replace('w=800', 'w=1200') : ''}" alt="${property.title}" loading="eager" decoding="async" style="width: 100%; height: 100%; object-fit: cover;">
+        <img src="${property.imageUrl ? property.imageUrl.replace('w=800', 'w=1200') : ''}" alt="${escapeHtml(property.title)}" loading="eager" decoding="async" style="width: 100%; height: 100%; object-fit: cover;">
       </div>
       
       <!-- Content Area -->
@@ -330,9 +497,9 @@ window.openPropertyModal = function(propertyId) {
               <span style="background: var(--secondary-color); color: #fff; padding: 0.25rem 0.75rem; border-radius: 20px; font-weight: 600; font-size: 0.75rem; text-transform: uppercase;">${property.status}</span>
             </div>
             
-            <h2 style="font-size: 2rem; color: var(--dark-color); margin-bottom: 0.5rem; line-height: 1.2;">${property.title}</h2>
+            <h2 style="font-size: 2rem; color: var(--dark-color); margin-bottom: 0.5rem; line-height: 1.2;">${escapeHtml(property.title)}</h2>
             <p style="color: var(--text-light); font-size: 1rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
-              <i class="fa-solid fa-location-dot"></i> ${property.location}
+              <i class="fa-solid fa-location-dot"></i> ${escapeHtml(property.location)}
             </p>
           </div>
           
@@ -366,8 +533,14 @@ window.openPropertyModal = function(propertyId) {
         <!-- Description -->
         <h3 style="font-size: 1.25rem; color: var(--dark-color); margin-bottom: 1rem;">About This Property</h3>
         <p style="color: var(--text-color); line-height: 1.7; font-size: 1.05rem; margin-bottom: 2rem;">
-          ${property.description}
+          ${escapeHtml(property.description)}
         </p>
+        ${property.verificationProof ? `
+        <div style="background:#ecfdf5;border:1px solid #34d399;border-radius:12px;padding:1.25rem;margin-bottom:2rem;">
+          <h4 style="color:#047857;margin-bottom:0.5rem;font-size:1rem;"><i class="fa-solid fa-shield-halved"></i> Listing verification</h4>
+          <p style="color:#334155;line-height:1.6;margin:0;font-size:0.95rem;">${escapeHtml(property.verificationProof)}</p>
+          ${property.proofAttachmentName ? `<p style="margin-top:0.75rem;font-size:0.875rem;color:var(--text-light);"><i class="fa-solid fa-paperclip"></i> Proof document name: <strong>${escapeHtml(property.proofAttachmentName)}</strong> (stored locally on this demo site)</p>` : ''}
+        </div>` : ''}
         
         <button class="btn btn-primary" style="width: 100%; font-size: 1.125rem; padding: 1rem; border-radius: 12px;" onclick="alert('Contacting Agent... This feature will be implemented in the next update!')">
           Contact Agent
