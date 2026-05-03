@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Real Estate</title>
+  <meta name="description" content="Find your dream home with Smart Real Estate. Browse modern luxury villas, apartments, and condos.">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="/" class="logo">
+        <i class="fa-solid fa-house-chimney"></i> SmartEstate
+      </a>
+      <ul class="nav-links">
+        <li><a href="/" class="active">Home</a></li>
+        <li><a href="/pages/properties.html">Properties</a></li>
+        <li><a href="/pages/about.html">About</a></li>
+        <li><a href="/pages/contact.html">Contact</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="/pages/login.html" class="btn btn-outline">Sign In</a>
+        <a href="/pages/signup.html" class="btn btn-primary">Sign Up</a>
+      </div>
+      <div class="mobile-menu-btn">
+        <i class="fa-solid fa-bars"></i>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header class="hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <h1>Find Your Dream Home Today</h1>
+      <p>Discover the most exquisite properties in top locations, handpicked for your lifestyle.</p>
+      
+      <!-- Search Bar -->
+      <div class="search-container">
+        <form id="search-form" class="search-form" action="/pages/properties.html">
+          <div class="search-field">
+            <label><i class="fa-solid fa-location-dot"></i> Location</label>
+            <select id="filter-location" name="location">
+              <option value="">Any City</option>
+              <option value="Agra">Agra</option>
+              <option value="Ahmedabad">Ahmedabad</option>
+              <option value="Amritsar">Amritsar</option>
+              <option value="Bangalore">Bangalore</option>
+              <option value="Bhopal">Bhopal</option>
+              <option value="Chandigarh">Chandigarh</option>
+              <option value="Chennai">Chennai</option>
+              <option value="Coimbatore">Coimbatore</option>
+              <option value="Delhi">Delhi</option>
+              <option value="Faridabad">Faridabad</option>
+              <option value="Ghaziabad">Ghaziabad</option>
+              <option value="Guwahati">Guwahati</option>
+              <option value="Hyderabad">Hyderabad</option>
+              <option value="Indore">Indore</option>
+              <option value="Jaipur">Jaipur</option>
+              <option value="Kanpur">Kanpur</option>
+              <option value="Kochi">Kochi</option>
+              <option value="Kolkata">Kolkata</option>
+              <option value="Lucknow">Lucknow</option>
+              <option value="Ludhiana">Ludhiana</option>
+              <option value="Madurai">Madurai</option>
+              <option value="Meerut">Meerut</option>
+              <option value="Mumbai">Mumbai</option>
+              <option value="Nagpur">Nagpur</option>
+              <option value="Nashik">Nashik</option>
+              <option value="Patna">Patna</option>
+              <option value="Pune">Pune</option>
+              <option value="Rajkot">Rajkot</option>
+              <option value="Ranchi">Ranchi</option>
+              <option value="Surat">Surat</option>
+              <option value="Thane">Thane</option>
+              <option value="Vadodara">Vadodara</option>
+              <option value="Varanasi">Varanasi</option>
+              <option value="Vijayawada">Vijayawada</option>
+              <option value="Visakhapatnam">Visakhapatnam</option>
+            </select>
+          </div>
+          <div class="search-field">
+            <label><i class="fa-solid fa-house"></i> Property Type</label>
+            <select id="filter-type" name="type">
+              <option value="">Any Type</option>
+              <option value="House">House</option>
+              <option value="Apartment">Apartment</option>
+              <option value="Villa">Villa</option>
+              <option value="Condo">Condo</option>
+              <option value="Townhouse">Townhouse</option>
+            </select>
+          </div>
+          <div class="search-field">
+            <label><i class="fa-solid fa-tag"></i> Status</label>
+            <select id="filter-status" name="status">
+              <option value="">Any Status</option>
+              <option value="For Sale">For Sale</option>
+              <option value="For Rent">For Rent</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary btn-search"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+        </form>
+      </div>
+    </div>
+  </header>
+
+  <!-- Featured Properties Section -->
+  <section id="properties" class="properties-section">
+    <div class="section-header">
+      <h2>Featured Properties</h2>
+      <p>Explore our hand-picked selection of premium real estate</p>
+    </div>
+    
+    <!-- Loader -->
+    <div id="loader" class="loader">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Properties Grid -->
+    <div id="properties-grid" class="properties-grid">
+      <!-- Properties will be injected here via JavaScript -->
+    </div>
+    <div style="text-align: center; margin-top: 3rem;">
+      <a href="/pages/properties.html" class="btn btn-primary">View All Properties</a>
+    </div>
+  </section>
+
+  <!-- Footer Full -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-col">
+        <h3><i class="fa-solid fa-house-chimney"></i> SmartEstate</h3>
+        <p>Your trusted partner in finding the perfect home. We make real estate easy, transparent, and hassle-free.</p>
+      </div>
+      <div class="footer-col">
+        <h3>Quick Links</h3>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/pages/properties.html">Properties</a></li>
+          <li><a href="/pages/about.html">About Us</a></li>
+          <li><a href="/pages/contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h3>Newsletter</h3>
+        <p>Subscribe to our newsletter for the latest updates and offers.</p>
+        <form class="newsletter-form" onsubmit="event.preventDefault();">
+          <input type="email" placeholder="Your email address" required>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i></button>
+        </form>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 SmartEstate. All rights reserved.</p>
+      <div class="social-links">
+        <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+        <a href="#"><i class="fa-brands fa-twitter"></i></a>
+        <a href="#"><i class="fa-brands fa-instagram"></i></a>
+        <a href="#"><i class="fa-brands fa-linkedin-in"></i></a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/assets/js/app.js"></script>
+</body>
+</html>
