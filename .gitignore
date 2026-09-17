@@ -3,5 +3,7 @@
 Thumbs.db
 *.log
 =======
+SmartEstate/server/node_modules/
 SmartEstate-gh-pages/
+
 >>>>>>> 53452b5 (Adding the button Add Properties)
